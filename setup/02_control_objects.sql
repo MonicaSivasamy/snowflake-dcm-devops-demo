@@ -49,3 +49,24 @@ CREATE GIT REPOSITORY IF NOT EXISTS DCM_DEMO_CTRL_DB.GIT.DCM_DEMO_REPO
   API_INTEGRATION = DCM_DEMO_GIT_API
   ORIGIN = 'https://github.com/MonicaSivasamy/snowflake-dcm-devops-demo.git'
   COMMENT = 'DCM_DEMO: Snowflake clone of the GitHub repo';
+
+-- -----------------------------------------------------------------------------
+-- DCM task runner (used by the Streamlit app).
+-- Streamlit in Snowflake runs with OWNER'S RIGHTS and DCM rejects Jinja
+-- templating there ("Unsupported feature 'Jinja templating in owner's rights
+-- stored procedure'"). The app therefore hands PLAN/DEPLOY statements to a
+-- short-lived task owned by DCM_DEMO_ADMIN and reads the JSON result from this
+-- table. Requires: GRANT EXECUTE TASK ON ACCOUNT TO ROLE DCM_DEMO_ADMIN.
+-- -----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS DCM_DEMO_CTRL_DB.APP.DCM_RUNS (
+    RUN_ID       VARCHAR(40),
+    SUBMITTED_TS TIMESTAMP_LTZ DEFAULT CURRENT_TIMESTAMP(),
+    FINISHED_TS  TIMESTAMP_LTZ,
+    STATEMENT    VARCHAR,
+    STATUS       VARCHAR(20),     -- PENDING / SUCCESS / FAILED
+    RESULT       VARIANT,
+    ERROR_TEXT   VARCHAR
+) COMMENT = 'DCM_DEMO: results of DCM statements executed by the task runner';
+
+CREATE STAGE IF NOT EXISTS DCM_DEMO_CTRL_DB.APP.DCM_OUTPUT
+  COMMENT = 'DCM_DEMO: DCM PLAN output (plan_result.json + DCM-rendered Jinja files)';

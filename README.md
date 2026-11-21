@@ -137,7 +137,12 @@ Every command writes to `DCM_DEMO_CTRL_DB.AUDIT.EXECUTION_LOG`.
 3. **Zero-copy clones copy definitions too.** Cloned COMPUTE views still referenced
    `ANALYTICS_DB` until the developer's DCM deploy re-rendered them against
    `DEV_A_ANALYTICS_DB`. Always deploy after cloning.
-4. **Green pipeline ≠ correct data.** Generic expectations (nulls, duplicates,
+4. **DCM + Jinja does not run under owner's rights.** Streamlit in Snowflake (and any
+   `EXECUTE AS OWNER` procedure) gets *"Unsupported feature 'Jinja templating in owner's
+   rights stored procedure'"*. The app therefore submits PLAN/DEPLOY to a one-shot task
+   owned by `DCM_DEMO_ADMIN` (needs `GRANT EXECUTE TASK ON ACCOUNT`) and reads the result
+   from `DCM_DEMO_CTRL_DB.APP.DCM_RUNS`. Everything else (Git, TEST ALL, queries) runs directly.
+5. **Green pipeline ≠ correct data.** Generic expectations (nulls, duplicates,
    volume) pass on wrong business logic. Encode business rules as tests.
 
 ## Safety

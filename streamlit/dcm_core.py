@@ -153,12 +153,72 @@ def dcm_test_sql(target: str) -> str:
     return f"EXECUTE DCM PROJECT {TARGETS[target]['project']} TEST ALL"
 
 
-def dcm_plan(sql: Sql, target: str, branch: str) -> dict:
-    return _parse_result(sql(dcm_plan_sql(target, branch)))
+# ----------------------------------------------------------- DCM task runner
+# Streamlit in Snowflake runs with owner's rights. DCM rejects Jinja templating in
+# that context ("Unsupported feature 'Jinja templating in owner's rights stored
+# procedure'"), so the app hands PLAN/DEPLOY to a short-lived task owned by the
+# same role and reads the JSON result back from DCM_RUNS.
+RUNS_TABLE = f"{CTRL_DB}.APP.DCM_RUNS"
+OWNER_RIGHTS_ERROR = "owner's rights"
 
 
-def dcm_deploy(sql: Sql, target: str, branch: str, alias: Optional[str] = None) -> dict:
-    return _parse_result(sql(dcm_deploy_sql(target, branch, alias)))
+def run_via_task(sql: Sql, statement: str, sleep=None, timeout_s: int = 600) -> dict:
+    import time
+    import uuid
+    sleep = sleep or time.sleep
+    run_id = uuid.uuid4().hex[:16].upper()
+    task = f"{CTRL_DB}.APP.DCM_RUN_{run_id}"
+    sql(f"INSERT INTO {RUNS_TABLE} (RUN_ID, STATEMENT, STATUS) SELECT {q(run_id)}, {q(statement)}, 'PENDING'")
+    sql(f"""CREATE OR REPLACE TASK {task} WAREHOUSE = DCM_DEMO_WH COMMENT = 'DCM_DEMO: one-shot DCM runner {run_id}' AS
+DECLARE
+  res VARIANT;
+BEGIN
+  {statement};
+  SELECT TRY_PARSE_JSON($1) INTO :res FROM TABLE(RESULT_SCAN(LAST_QUERY_ID()));
+  UPDATE {RUNS_TABLE} SET STATUS = 'SUCCESS', RESULT = :res, FINISHED_TS = CURRENT_TIMESTAMP() WHERE RUN_ID = '{run_id}';
+EXCEPTION
+  WHEN OTHER THEN
+    UPDATE {RUNS_TABLE} SET STATUS = 'FAILED', ERROR_TEXT = :SQLERRM, FINISHED_TS = CURRENT_TIMESTAMP() WHERE RUN_ID = '{run_id}';
+END""")
+    try:
+        sql(f"EXECUTE TASK {task}")
+        waited = 0
+        while waited < timeout_s:
+            rows = sql(f"SELECT STATUS, RESULT, ERROR_TEXT FROM {RUNS_TABLE} WHERE RUN_ID = {q(run_id)}")
+            if rows and rows[0]["STATUS"] != "PENDING":
+                r = rows[0]
+                if r["STATUS"] == "FAILED":
+                    raise RuntimeError(r["ERROR_TEXT"])
+                res = r["RESULT"]
+                return json.loads(res) if isinstance(res, str) else (res or {})
+            sleep(2)
+            waited += 2
+        raise TimeoutError(f"DCM task run {run_id} did not finish within {timeout_s}s")
+    finally:
+        try:
+            sql(f"DROP TASK IF EXISTS {task}")
+        except Exception:
+            pass
+
+
+def execute_dcm(sql: Sql, statement: str, mode: str = "auto") -> dict:
+    """mode: 'direct' | 'task' | 'auto' (direct, fall back to task on the owner's-rights restriction)."""
+    if mode == "task":
+        return run_via_task(sql, statement)
+    try:
+        return _parse_result(sql(statement))
+    except Exception as e:
+        if mode == "auto" and OWNER_RIGHTS_ERROR in str(e):
+            return run_via_task(sql, statement)
+        raise
+
+
+def dcm_plan(sql: Sql, target: str, branch: str, mode: str = "direct") -> dict:
+    return execute_dcm(sql, dcm_plan_sql(target, branch), mode)
+
+
+def dcm_deploy(sql: Sql, target: str, branch: str, alias: Optional[str] = None, mode: str = "direct") -> dict:
+    return execute_dcm(sql, dcm_deploy_sql(target, branch, alias), mode)
 
 
 def dcm_test_all(sql: Sql, target: str) -> dict:

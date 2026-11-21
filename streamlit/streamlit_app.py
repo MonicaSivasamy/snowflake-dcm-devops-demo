@@ -40,6 +40,10 @@ def show(rows, cols=None, height=None):
     st.dataframe(df(rows, cols), **kwargs)
 
 
+# DCM execution mode: 'auto' runs DCM directly and falls back to the task runner when
+# Snowflake refuses Jinja templating under owner's rights (always the case in SiS).
+DCM_MODE = "auto"
+
 # ------------------------------------------------------------------- state & status
 ss = st.session_state
 ss.setdefault("status", {})        # step key -> dict(state, msg, ts)
@@ -124,7 +128,7 @@ def plan_widget(key, target, ref, actor, scenario):
     st.markdown(f"**DCM PLAN** · project `{t['project']}` · configuration `{t['config']}` · source `{core.ref_label(ref)}`")
     st.code(core.dcm_plan_sql(target, ref), language="sql")
     if st.button(f"▶ Run DCM PLAN ({actor} → {target})", key=f"btn_{key}"):
-        res = run(key, "DCM PLAN", lambda: core.dcm_plan(sql, target, ref), actor=actor, scenario=scenario,
+        res = run(key, "DCM PLAN", lambda: core.dcm_plan(sql, target, ref, mode=DCM_MODE), actor=actor, scenario=scenario,
                   operation="PLAN", target=target, ref=ref, command=core.dcm_plan_sql(target, ref))
         if res is not None:
             ss.plans[(target, ref)] = {"result": res, "commit": ss.results[key].get("commit"), "reviewed": False,
@@ -167,7 +171,7 @@ def deploy_widget(key, target, ref, actor, scenario, alias_prefix):
     alias = f"{alias_prefix}-{str(plan.get('commit') or 'na')[:7]}-{dt.datetime.now().strftime('%H%M%S')}"
     st.code(core.dcm_deploy_sql(target, ref, alias), language="sql")
     if st.button(f"🚀 Run DCM DEPLOY ({actor} → {target})", key=f"btn_{key}", disabled=not reviewed):
-        res = run(key, "DCM DEPLOY", lambda: core.dcm_deploy(sql, target, ref, alias), actor=actor, scenario=scenario,
+        res = run(key, "DCM DEPLOY", lambda: core.dcm_deploy(sql, target, ref, alias, mode=DCM_MODE), actor=actor, scenario=scenario,
                   operation="DEPLOY", target=target, ref=ref, command=core.dcm_deploy_sql(target, ref, alias))
         if res is not None:
             ss.plans.pop((target, ref), None)  # a new deploy needs a new plan
@@ -261,10 +265,10 @@ def reset_widget(key, target, label):
         ok = st.checkbox(f"Confirm reset of {target}", key=f"conf_{key}")
         if st.button("Reset now", key=f"btn_{key}", disabled=not ok):
             def go():
-                plan = core.dcm_plan(sql, target, core.BASELINE_REF)
+                plan = core.dcm_plan(sql, target, core.BASELINE_REF, mode=DCM_MODE)
                 if core.changeset_summary(plan).get("DROP", 0):
                     raise RuntimeError("Reset aborted: baseline PLAN contains DROP operations.")
-                return core.dcm_deploy(sql, target, core.BASELINE_REF, f"reset-{dt.datetime.now().strftime('%H%M%S')}")
+                return core.dcm_deploy(sql, target, core.BASELINE_REF, f"reset-{dt.datetime.now().strftime('%H%M%S')}", mode=DCM_MODE)
             run(key, "Reset", go, actor="Presenter", scenario=label, operation="RESET (PLAN+DEPLOY)", target=target,
                 ref=core.BASELINE_REF, command=core.dcm_deploy_sql(target, core.BASELINE_REF))
         status_chip(key)

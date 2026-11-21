@@ -22,6 +22,8 @@ GRANT CREATE DATABASE    ON ACCOUNT TO ROLE DCM_DEMO_ADMIN;  -- demo databases (
 GRANT CREATE INTEGRATION ON ACCOUNT TO ROLE DCM_DEMO_ADMIN;  -- API integration for the GitHub repo
 GRANT EXECUTE DATA METRIC FUNCTION ON ACCOUNT TO ROLE DCM_DEMO_ADMIN;  -- DCM data quality expectations
 GRANT DATABASE ROLE SNOWFLAKE.DATA_METRIC_USER TO ROLE DCM_DEMO_ADMIN;
+GRANT EXECUTE TASK ON ACCOUNT TO ROLE DCM_DEMO_ADMIN;  -- Streamlit app runs DCM PLAN/DEPLOY through a task:
+                                                      -- DCM rejects Jinja templating under owner's rights (Streamlit in Snowflake)
 
 -- 4. Dedicated service user for automation (used by the Claude cloud session) ----
 CREATE USER IF NOT EXISTS DCM_DEMO_SVC
