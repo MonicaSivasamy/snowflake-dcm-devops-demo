@@ -2,6 +2,7 @@
 -- Business rule owner: Sales Finance.
 -- NET_SALES = SALES_AMOUNT * (1 - DISCOUNT_PCT)
 -- Column types are pinned so later rule changes never alter the column type.
+-- Change (Developer B): apply the 20% partner discount to customer sales.
 
 define view {{ business_db }}.BUSINESS_READY.VW_CUSTOMER_SALES
   comment = 'DCM_DEMO: customer sales for business users'
@@ -12,6 +13,6 @@ select CUSTOMER_ID,
        SEGMENT,
        ORDER_COUNT,
        SALES_AMOUNT,
-       0.00::number(5,4)                          as DISCOUNT_PCT,
-       round(SALES_AMOUNT * 1.00, 2)::number(18,2) as NET_SALES
+       0.20::number(5,4)                          as DISCOUNT_PCT,
+       round(SALES_AMOUNT * 0.80, 2)::number(18,2) as NET_SALES
 from {{ analytics_db }}.COMPUTE.CUSTOMER_SALES;
