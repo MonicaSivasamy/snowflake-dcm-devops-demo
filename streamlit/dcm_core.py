@@ -13,7 +13,6 @@ from __future__ import annotations
 
 import difflib
 import json
-import re
 from typing import Callable, Dict, List, Optional
 
 Sql = Callable[[str], List[dict]]
@@ -38,6 +37,11 @@ TARGETS: Dict[str, Dict[str, str]] = {
              "analytics_db": "PROD_ANALYTICS_DB", "business_db": "PROD_BUSINESS_DB", "label": "PROD (plan only)"},
 }
 
+# Immutable baseline used by "reset" buttons: main after the DCM migration
+# (0% discount, pinned column types). Referenced by commit, so it never moves.
+BASELINE_COMMIT = "112399658d741dbeb2d6b2c4ca2714bfaccc773c"
+BASELINE_REF = "commit:" + BASELINE_COMMIT
+
 BRANCHES = ["main", "feature/developer-A", "feature/developer-B", "feature/developer-A-defect"]
 BUSINESS_VIEW_FILE = "sources/definitions/03_business_ready/vw_customer_sales.sql"
 
@@ -57,9 +61,27 @@ def q(value: Optional[str]) -> str:
     return "'" + str(value).replace("\\", "\\\\").replace("'", "''") + "'"
 
 
-def branch_path(branch: str) -> str:
-    """Stage path of the DCM project folder inside a branch of the Git repo object."""
-    return f'@{REPO}/branches/"{branch}"/{PROJECT_DIR}'
+def ref_root(ref: str) -> str:
+    """Stage path of a Git ref in the repository object.
+    ref = branch name (e.g. 'feature/developer-A') or 'commit:<sha>'."""
+    if ref.startswith("commit:"):
+        return f"@{REPO}/commits/{ref.split(':', 1)[1]}"
+    return f'@{REPO}/branches/"{ref}"'
+
+
+def ref_label(ref: str) -> str:
+    return f"commit {ref.split(':', 1)[1][:7]} (baseline)" if ref.startswith("commit:") else ref
+
+
+def branch_path(ref: str) -> str:
+    """Stage path of the DCM project folder (manifest.yml) inside a Git ref."""
+    return f"{ref_root(ref)}/{PROJECT_DIR}"
+
+
+def read_git_file(sql: Sql, ref: str, repo_path: str) -> str:
+    """Read a whole text file (path relative to repo root) from a Git ref."""
+    rows = sql(f"SELECT $1 AS CONTENT FROM {ref_root(ref)}/{repo_path} (FILE_FORMAT => '{WHOLE_FILE_FMT}')")
+    return rows[0]["CONTENT"] if rows else ""
 
 
 # ------------------------------------------------------------------------------ Git
@@ -78,21 +100,18 @@ def branch_commit(sql: Sql, branch: str) -> Optional[str]:
     return None
 
 
-def read_repo_file(sql: Sql, branch: str, relative_path: str) -> str:
-    """Read a whole text file from a branch of the Git repository object."""
-    path = f'@{REPO}/branches/"{branch}"/{PROJECT_DIR}/{relative_path}'
-    rows = sql(f"SELECT $1 AS CONTENT FROM {path} (FILE_FORMAT => '{WHOLE_FILE_FMT}')")
-    return rows[0]["CONTENT"] if rows else ""
+def read_repo_file(sql: Sql, ref: str, relative_path: str) -> str:
+    """Read a whole text file from the DCM project folder of a Git ref."""
+    return read_git_file(sql, ref, f"{PROJECT_DIR}/{relative_path}")
 
 
-def list_repo_files(sql: Sql, branch: str) -> List[str]:
-    rows = sql(f"LS {branch_path(branch)}")
-    prefix = re.compile(r"^.*?/branches/[^/]+(?:/[^/]+)*?/" + PROJECT_DIR + "/")
+def list_repo_files(sql: Sql, ref: str) -> List[dict]:
+    rows = sql(f"LS {branch_path(ref)}")
     out = []
     for r in rows:
         name = r.get("name", "")
         idx = name.find(f"/{PROJECT_DIR}/")
-        out.append(name[idx + len(PROJECT_DIR) + 2:] if idx >= 0 else prefix.sub("", name))
+        out.append({"FILE": name[idx + len(PROJECT_DIR) + 2:] if idx >= 0 else name, "BYTES": r.get("size")})
     return out
 
 
@@ -239,10 +258,8 @@ def render_validation(template: str, target: str) -> str:
                     .replace("{{ business_db }}", t["business_db"]))
 
 
-def read_validation_template(sql: Sql, branch: str = "main") -> str:
-    path = f'@{REPO}/branches/"{branch}"/{VALIDATION_SQL_PATH}'
-    rows = sql(f"SELECT $1 AS CONTENT FROM {path} (FILE_FORMAT => '{WHOLE_FILE_FMT}')")
-    return rows[0]["CONTENT"] if rows else ""
+def read_validation_template(sql: Sql, ref: str = "main") -> str:
+    return read_git_file(sql, ref, VALIDATION_SQL_PATH)
 
 
 def strip_sql_comments(text: str) -> str:

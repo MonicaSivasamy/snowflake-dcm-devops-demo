@@ -1,0 +1,16 @@
+definition_version: 2
+entities:
+  dcm_devops_demo:
+    type: streamlit
+    identifier:
+      name: DCM_DEVOPS_DEMO
+      database: DCM_DEMO_CTRL_DB
+      schema: APP
+    title: "Snowflake DCM DevOps & Developer Isolation Demo"
+    query_warehouse: DCM_DEMO_WH
+    main_file: streamlit_app.py
+    stage: STREAMLIT_STAGE
+    artifacts:
+      - streamlit_app.py
+      - dcm_core.py
+      - environment.yml
