@@ -1,0 +1,77 @@
+# =============================================================================
+# DCM project manifest - Sales Analytics (RAW -> COMPUTE -> BUSINESS_READY)
+# -----------------------------------------------------------------------------
+# One set of SQL definitions (sources/definitions) is deployed to many targets.
+# Each target = one DCM project object in Snowflake + one templating
+# configuration that sets the database names via Jinja variables.
+#
+#   target       DCM project object                          databases
+#   SHARED_DEV   DCM_DEMO_CTRL_DB.PROJECTS.DCM_SHARED_DEV    ANALYTICS_DB / BUSINESS_DB
+#   DEV_A        DCM_DEMO_CTRL_DB.PROJECTS.DCM_DEV_A         DEV_A_ANALYTICS_DB / DEV_A_BUSINESS_DB
+#   DEV_B        DCM_DEMO_CTRL_DB.PROJECTS.DCM_DEV_B         DEV_B_ANALYTICS_DB / DEV_B_BUSINESS_DB
+#   UAT          DCM_DEMO_CTRL_DB.PROJECTS.DCM_UAT           UAT_ANALYTICS_DB / UAT_BUSINESS_DB
+#   PROD         DCM_DEMO_CTRL_DB.PROJECTS.DCM_PROD          PROD_ANALYTICS_DB / PROD_BUSINESS_DB  (PLAN only in this demo)
+#
+# A Snowflake object can be managed by only ONE DCM project, which is why every
+# target has its own project object.
+# =============================================================================
+manifest_version: 2
+
+type: DCM_PROJECT
+
+default_target: SHARED_DEV
+
+targets:
+  SHARED_DEV:
+    account_identifier: "PYPSAGL-HO49439"
+    project_name: "DCM_DEMO_CTRL_DB.PROJECTS.DCM_SHARED_DEV"
+    project_owner: "DCM_DEMO_ADMIN"
+    templating_config: SHARED_DEV
+  DEV_A:
+    account_identifier: "PYPSAGL-HO49439"
+    project_name: "DCM_DEMO_CTRL_DB.PROJECTS.DCM_DEV_A"
+    project_owner: "DCM_DEMO_ADMIN"
+    templating_config: DEV_A
+  DEV_B:
+    account_identifier: "PYPSAGL-HO49439"
+    project_name: "DCM_DEMO_CTRL_DB.PROJECTS.DCM_DEV_B"
+    project_owner: "DCM_DEMO_ADMIN"
+    templating_config: DEV_B
+  UAT:
+    account_identifier: "PYPSAGL-HO49439"
+    project_name: "DCM_DEMO_CTRL_DB.PROJECTS.DCM_UAT"
+    project_owner: "DCM_DEMO_ADMIN"
+    templating_config: UAT
+  PROD:
+    account_identifier: "PYPSAGL-HO49439"
+    project_name: "DCM_DEMO_CTRL_DB.PROJECTS.DCM_PROD"
+    project_owner: "DCM_DEMO_ADMIN"
+    templating_config: PROD
+
+templating:
+  defaults:
+    analytics_db: "ANALYTICS_DB"
+    business_db: "BUSINESS_DB"
+    env_label: "SHARED DEV"
+
+  configurations:
+    SHARED_DEV:
+      analytics_db: "ANALYTICS_DB"
+      business_db: "BUSINESS_DB"
+      env_label: "SHARED DEV"
+    DEV_A:
+      analytics_db: "DEV_A_ANALYTICS_DB"
+      business_db: "DEV_A_BUSINESS_DB"
+      env_label: "DEVELOPER A"
+    DEV_B:
+      analytics_db: "DEV_B_ANALYTICS_DB"
+      business_db: "DEV_B_BUSINESS_DB"
+      env_label: "DEVELOPER B"
+    UAT:
+      analytics_db: "UAT_ANALYTICS_DB"
+      business_db: "UAT_BUSINESS_DB"
+      env_label: "UAT"
+    PROD:
+      analytics_db: "PROD_ANALYTICS_DB"
+      business_db: "PROD_BUSINESS_DB"
+      env_label: "PROD"
