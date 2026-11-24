@@ -1,0 +1,83 @@
+# =============================================================================
+# ENTERPRISE dbt + DCM PROJECT - DCM manifest (infrastructure + security)
+# -----------------------------------------------------------------------------
+# Split of responsibilities
+#   DCM  (this folder)    databases, schemas, RAW layer, the PII-protected
+#                         COMPUTE.CUSTOMER table, database roles, grants,
+#                         masking + row access policies
+#   dbt  (../dbt_project) transformation logic: COMPUTE.V_CUSTOMER_CLEANSED,
+#                         loading COMPUTE.CUSTOMER, BUSINESS_READY.CUSTOMER_PROFILE
+#
+# Names live here (for DCM) and in ../dbt_project/dbt_project.yml (for dbt).
+# The two tables below must agree.
+#
+#   target  isolation       DCM project object                       RAW_COMPUTE_DB               BUSINESS_DB               schemas
+#   DEV     shared          ENT_DBT_CTRL_DB.PROJECTS.DCM_DEV         DBT_DEV_RAW_COMPUTE_DB       DBT_DEV_BUSINESS_DB       RAW, COMPUTE, ...
+#   QA      shared          ENT_DBT_CTRL_DB.PROJECTS.DCM_QA          DBT_QA_RAW_COMPUTE_DB        DBT_QA_BUSINESS_DB        RAW, COMPUTE, ...
+#   PROD    shared          ENT_DBT_CTRL_DB.PROJECTS.DCM_PROD        DBT_PROD_RAW_COMPUTE_DB      DBT_PROD_BUSINESS_DB      RAW, COMPUTE, ...
+#   DEV_A   database-level  ENT_DBT_CTRL_DB.PROJECTS.DCM_DEV_A       SBX_DBT_DEV_A_RAW_COMPUTE_DB SBX_DBT_DEV_A_BUSINESS_DB RAW, COMPUTE, ...
+#   DEV_B   schema-level    ENT_DBT_CTRL_DB.PROJECTS.DCM_DEV_B       DBT_DEV_RAW_COMPUTE_DB       DBT_DEV_BUSINESS_DB       RAW_DEV_B, COMPUTE_DEV_B, ...
+#
+# The DBT_ prefix keeps this project's databases apart from the DCM-only
+# project (NEW_SNOWFLAKE_DCM_PROJECT); SBX_ marks developer sandboxes.
+# =============================================================================
+manifest_version: 2
+
+type: DCM_PROJECT
+
+default_target: DEV
+
+targets:
+  DEV:
+    account_identifier: "PYPSAGL-HO49439"
+    project_name: "ENT_DBT_CTRL_DB.PROJECTS.DCM_DEV"
+    project_owner: "DCM_DEMO_ADMIN"
+    templating_config: DEV
+  QA:
+    account_identifier: "PYPSAGL-HO49439"
+    project_name: "ENT_DBT_CTRL_DB.PROJECTS.DCM_QA"
+    project_owner: "DCM_DEMO_ADMIN"
+    templating_config: QA
+  PROD:
+    account_identifier: "PYPSAGL-HO49439"
+    project_name: "ENT_DBT_CTRL_DB.PROJECTS.DCM_PROD"
+    project_owner: "DCM_DEMO_ADMIN"
+    templating_config: PROD
+
+  # ---- developer sandboxes ----------------------------------------------------
+  DEV_A:                       # Developer A: DATABASE-level isolation (own cloned databases)
+    account_identifier: "PYPSAGL-HO49439"
+    project_name: "ENT_DBT_CTRL_DB.PROJECTS.DCM_DEV_A"
+    project_owner: "DCM_DEMO_ADMIN"
+    templating_config: DEV_A
+  DEV_B:                       # Developer B: SCHEMA-level isolation (own schemas in shared DEV databases)
+    account_identifier: "PYPSAGL-HO49439"
+    project_name: "ENT_DBT_CTRL_DB.PROJECTS.DCM_DEV_B"
+    project_owner: "DCM_DEMO_ADMIN"
+    templating_config: DEV_B
+
+templating:
+  defaults:
+    schema_suffix: ""
+    owns_databases: true
+    data_retention_days: 1
+
+  configurations:
+    DEV:
+      raw_compute_db: "DBT_DEV_RAW_COMPUTE_DB"
+      business_db: "DBT_DEV_BUSINESS_DB"
+    QA:
+      raw_compute_db: "DBT_QA_RAW_COMPUTE_DB"
+      business_db: "DBT_QA_BUSINESS_DB"
+    PROD:
+      raw_compute_db: "DBT_PROD_RAW_COMPUTE_DB"
+      business_db: "DBT_PROD_BUSINESS_DB"
+      data_retention_days: 7
+    DEV_A:
+      raw_compute_db: "SBX_DBT_DEV_A_RAW_COMPUTE_DB"
+      business_db: "SBX_DBT_DEV_A_BUSINESS_DB"
+    DEV_B:
+      raw_compute_db: "DBT_DEV_RAW_COMPUTE_DB"
+      business_db: "DBT_DEV_BUSINESS_DB"
+      schema_suffix: "_DEV_B"
+      owns_databases: false
