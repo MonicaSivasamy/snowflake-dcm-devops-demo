@@ -22,13 +22,13 @@ alter git repository ENT_DCM_CTRL_DB.GIT.ENT_DCM_REPO fetch;
 -- 1. PLAN shows the drift the clone introduced (expect ALTERs, no drops)
 execute dcm project ENT_DCM_CTRL_DB.PROJECTS.ENT_DCM_QA
     plan using configuration QA
-    from '@ENT_DCM_CTRL_DB.GIT.ENT_DCM_REPO/tags/"ent-dcm-v1.0.0"/NEW_SNOWFLAKE_DCM_PROJECT/dcm_project';
+    from '@ENT_DCM_CTRL_DB.GIT.ENT_DCM_REPO/commits/7c7309b80ac1c5cff181bf9e15bdcf367b9bf74b/NEW_SNOWFLAKE_DCM_PROJECT/dcm_project';
 
--- 2. DEPLOY the same release tag QA was on before the refresh
+-- 2. DEPLOY the same release commit QA was on before the refresh
 execute dcm project ENT_DCM_CTRL_DB.PROJECTS.ENT_DCM_QA
-    deploy as "ent-dcm-v1.0.0-after-refresh"
+    deploy as "release-1.0.0-after-refresh"   -- aliases are unique: change per run
     using configuration QA
-    from '@ENT_DCM_CTRL_DB.GIT.ENT_DCM_REPO/tags/"ent-dcm-v1.0.0"/NEW_SNOWFLAKE_DCM_PROJECT/dcm_project';
+    from '@ENT_DCM_CTRL_DB.GIT.ENT_DCM_REPO/commits/7c7309b80ac1c5cff181bf9e15bdcf367b9bf74b/NEW_SNOWFLAKE_DCM_PROJECT/dcm_project';
 
 -- 3. verify: the business view must read QA, not PROD
 select get_ddl('view', 'QA_BUSINESS_DB.BUSINESS_READY.CUSTOMER_PROFILE');

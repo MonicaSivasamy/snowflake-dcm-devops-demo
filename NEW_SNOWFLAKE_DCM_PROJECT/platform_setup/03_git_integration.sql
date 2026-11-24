@@ -5,6 +5,7 @@
 --   branches/"main"/NEW_SNOWFLAKE_DCM_PROJECT/dcm_project
 --   branches/"feature/dev-a-country-codes"/NEW_SNOWFLAKE_DCM_PROJECT/dcm_project
 --   tags/"ent-dcm-v1.0.0"/NEW_SNOWFLAKE_DCM_PROJECT/dcm_project
+--   commits/7c7309b80ac1c5cff181bf9e15bdcf367b9bf74b/NEW_SNOWFLAKE_DCM_PROJECT/dcm_project
 -- DCM PLAN / DEPLOY read the project directly from those paths.
 -- =============================================================================
 use role DCM_DEMO_ADMIN;
