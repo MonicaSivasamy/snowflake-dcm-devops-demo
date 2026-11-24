@@ -1,0 +1,97 @@
+# =============================================================================
+# ENTERPRISE DCM PROJECT WITH dbt - manifest
+# -----------------------------------------------------------------------------
+# Same project as NEW_SNOWFLAKE_DCM_PROJECT, but the transformation SQL files
+# are replaced by dbt models, maintained INSIDE this DCM project folder:
+#
+#   dcm_project/
+#   ├── manifest.yml            <- this file (environments + names)
+#   ├── sources/definitions/    <- DEPLOYED by DCM: databases, schemas, RAW,
+#   │                              COMPUTE.CUSTOMER structure, security, and the
+#   │                              TASK that runs dbt (orchestration/)
+#   └── dbt_project/            <- dbt models; ignored by DCM PLAN/DEPLOY
+#                                  (outside sources/), run by the DCM task
+#
+#   target  isolation       DCM project / dbt project            RAW_COMPUTE_DB                    BUSINESS_DB
+#   DEV     shared          ENT_DCMDBT_CTRL_DB.PROJECTS.DCM_DEV   / DBT_DEV    DCMDBT_DEV_RAW_COMPUTE_DB         DCMDBT_DEV_BUSINESS_DB
+#   QA      shared          ENT_DCMDBT_CTRL_DB.PROJECTS.DCM_QA    / DBT_QA     DCMDBT_QA_RAW_COMPUTE_DB          DCMDBT_QA_BUSINESS_DB
+#   PROD    shared          ENT_DCMDBT_CTRL_DB.PROJECTS.DCM_PROD  / DBT_PROD   DCMDBT_PROD_RAW_COMPUTE_DB        DCMDBT_PROD_BUSINESS_DB
+#   DEV_A   database-level  ENT_DCMDBT_CTRL_DB.PROJECTS.DCM_DEV_A / DBT_DEV_A  SBX_DCMDBT_DEV_A_RAW_COMPUTE_DB   SBX_DCMDBT_DEV_A_BUSINESS_DB
+#   DEV_B   schema-level    ENT_DCMDBT_CTRL_DB.PROJECTS.DCM_DEV_B / DBT_DEV_B  DCMDBT_DEV_RAW_COMPUTE_DB (_DEV_B schemas)
+#
+# dbt has its own copy of this mapping in dbt_project/dbt_project.yml
+# (vars.environments). Both must agree.
+# The DCMDBT_ prefix keeps this demo apart from the other two demos.
+# =============================================================================
+manifest_version: 2
+
+type: DCM_PROJECT
+
+default_target: DEV
+
+targets:
+  DEV:
+    account_identifier: "PYPSAGL-HO49439"
+    project_name: "ENT_DCMDBT_CTRL_DB.PROJECTS.DCM_DEV"
+    project_owner: "DCM_DEMO_ADMIN"
+    templating_config: DEV
+  QA:
+    account_identifier: "PYPSAGL-HO49439"
+    project_name: "ENT_DCMDBT_CTRL_DB.PROJECTS.DCM_QA"
+    project_owner: "DCM_DEMO_ADMIN"
+    templating_config: QA
+  PROD:
+    account_identifier: "PYPSAGL-HO49439"
+    project_name: "ENT_DCMDBT_CTRL_DB.PROJECTS.DCM_PROD"
+    project_owner: "DCM_DEMO_ADMIN"
+    templating_config: PROD
+
+  # ---- developer sandboxes ----------------------------------------------------
+  DEV_A:                       # Developer A: DATABASE-level isolation (own cloned databases)
+    account_identifier: "PYPSAGL-HO49439"
+    project_name: "ENT_DCMDBT_CTRL_DB.PROJECTS.DCM_DEV_A"
+    project_owner: "DCM_DEMO_ADMIN"
+    templating_config: DEV_A
+  DEV_B:                       # Developer B: SCHEMA-level isolation (own schemas in shared DEV databases)
+    account_identifier: "PYPSAGL-HO49439"
+    project_name: "ENT_DCMDBT_CTRL_DB.PROJECTS.DCM_DEV_B"
+    project_owner: "DCM_DEMO_ADMIN"
+    templating_config: DEV_B
+
+templating:
+  defaults:
+    schema_suffix: ""
+    owns_databases: true
+    data_retention_days: 1
+    # dbt task (sources/definitions/orchestration/): which dbt project object
+    # and which dbt target the DCM-managed task runs
+    dbt_project: "DBT_DEV"
+    dbt_target: "dev"
+
+  configurations:
+    DEV:
+      raw_compute_db: "DCMDBT_DEV_RAW_COMPUTE_DB"
+      business_db: "DCMDBT_DEV_BUSINESS_DB"
+    QA:
+      dbt_project: "DBT_QA"
+      dbt_target: "qa"
+      raw_compute_db: "DCMDBT_QA_RAW_COMPUTE_DB"
+      business_db: "DCMDBT_QA_BUSINESS_DB"
+    PROD:
+      dbt_project: "DBT_PROD"
+      dbt_target: "prod"
+      raw_compute_db: "DCMDBT_PROD_RAW_COMPUTE_DB"
+      business_db: "DCMDBT_PROD_BUSINESS_DB"
+      data_retention_days: 7
+    DEV_A:
+      dbt_project: "DBT_DEV_A"
+      dbt_target: "dev_a"
+      raw_compute_db: "SBX_DCMDBT_DEV_A_RAW_COMPUTE_DB"
+      business_db: "SBX_DCMDBT_DEV_A_BUSINESS_DB"
+    DEV_B:
+      dbt_project: "DBT_DEV_B"
+      dbt_target: "dev_b"
+      raw_compute_db: "DCMDBT_DEV_RAW_COMPUTE_DB"
+      business_db: "DCMDBT_DEV_BUSINESS_DB"
+      schema_suffix: "_DEV_B"
+      owns_databases: false
