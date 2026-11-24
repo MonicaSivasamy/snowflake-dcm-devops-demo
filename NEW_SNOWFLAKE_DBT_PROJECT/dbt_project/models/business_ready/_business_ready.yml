@@ -9,5 +9,4 @@ models:
       - name: CUSTOMER_SEGMENT
         data_tests:
           - accepted_values:
-              arguments:
-                values: [LOYAL, ESTABLISHED, NEW, UNKNOWN]
+              values: [LOYAL, ESTABLISHED, NEW, UNKNOWN]
