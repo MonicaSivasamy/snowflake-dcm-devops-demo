@@ -12,7 +12,7 @@ execute dcm project ENT_DCM_CTRL_DB.PROJECTS.ENT_DCM_DEV_B
     from '@ENT_DCM_CTRL_DB.GIT.ENT_DCM_REPO/branches/"feature/dev-b-customer-segment"/NEW_SNOWFLAKE_DCM_PROJECT/dcm_project';
 
 execute dcm project ENT_DCM_CTRL_DB.PROJECTS.ENT_DCM_DEV_B
-    deploy as "feature/dev-b-customer-segment"
+    deploy as "dev-b-customer-segment"        -- alias: no slashes allowed
     using configuration DEV_B
     from '@ENT_DCM_CTRL_DB.GIT.ENT_DCM_REPO/branches/"feature/dev-b-customer-segment"/NEW_SNOWFLAKE_DCM_PROJECT/dcm_project';
 
