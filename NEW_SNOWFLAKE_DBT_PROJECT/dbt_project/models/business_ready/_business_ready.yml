@@ -6,3 +6,8 @@ models:
     columns:
       - name: CUSTOMER_ID
         data_tests: [not_null, unique]
+      - name: CUSTOMER_SEGMENT
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [LOYAL, ESTABLISHED, NEW, UNKNOWN]
