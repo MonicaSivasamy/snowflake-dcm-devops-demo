@@ -7,7 +7,7 @@
 use role DCM_DEMO_ADMIN;
 use warehouse DCM_DEMO_WH;
 
-set ENV = 'DEV';                                   -- DEV | QA | PROD | DEV_A
+set ENV = 'DEV';                                   -- DEV | QA | PROD | SBX_DEV_A
 
 set RAW_TABLE = $ENV || '_RAW_COMPUTE_DB.RAW.CUSTOMER_SRC';
 set CMP_TABLE = $ENV || '_RAW_COMPUTE_DB.COMPUTE.CUSTOMER';
