@@ -1,0 +1,13 @@
+version: 2
+
+models:
+  - name: v_customer_cleansed
+    description: cleansed customer attributes
+    columns:
+      - name: CUSTOMER_ID
+        data_tests: [not_null, unique]
+  - name: customer
+    description: cleansed customers (table structure and masking owned by DCM)
+    columns:
+      - name: CUSTOMER_ID
+        data_tests: [not_null, unique]
