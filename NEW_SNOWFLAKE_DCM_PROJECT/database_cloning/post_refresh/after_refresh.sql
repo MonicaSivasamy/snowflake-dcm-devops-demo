@@ -26,7 +26,7 @@ execute dcm project ENT_DCM_CTRL_DB.PROJECTS.ENT_DCM_QA
 
 -- 2. DEPLOY the same release tag QA was on before the refresh
 execute dcm project ENT_DCM_CTRL_DB.PROJECTS.ENT_DCM_QA
-    deploy as "ent-dcm-v1.0.0 (after refresh)"
+    deploy as "ent-dcm-v1.0.0-after-refresh"
     using configuration QA
     from '@ENT_DCM_CTRL_DB.GIT.ENT_DCM_REPO/tags/"ent-dcm-v1.0.0"/NEW_SNOWFLAKE_DCM_PROJECT/dcm_project';
 
