@@ -15,11 +15,13 @@ execute dcm project ENT_DBT_CTRL_DB.PROJECTS.DCM_DEV_A
     plan using configuration DEV_A
     from '@ENT_DBT_CTRL_DB.GIT.ENT_DBT_REPO/branches/"feature/dbt-dev-a-country-codes"/NEW_SNOWFLAKE_DBT_PROJECT/dcm_project';
 execute dcm project ENT_DBT_CTRL_DB.PROJECTS.DCM_DEV_A
-    deploy as "dbt-dev-a-country-codes"
+    deploy                                     -- no alias: sandboxes redeploy often and aliases must be unique
     using configuration DEV_A
     from '@ENT_DBT_CTRL_DB.GIT.ENT_DBT_REPO/branches/"feature/dbt-dev-a-country-codes"/NEW_SNOWFLAKE_DBT_PROJECT/dcm_project';
 
 -- 2. dbt: Developer A's own dbt project object, built from the feature branch
+-- first run creates the dbt project object; after further pushes run the
+-- commented ALTER ... ADD VERSION instead
 create dbt project if not exists ENT_DBT_CTRL_DB.PROJECTS.DBT_DEV_A
     from '@ENT_DBT_CTRL_DB.GIT.ENT_DBT_REPO/branches/"feature/dbt-dev-a-country-codes"/NEW_SNOWFLAKE_DBT_PROJECT/dbt_project'
     default_target = 'dev_a'
