@@ -2,7 +2,7 @@
 -- ORCHESTRATION - the task that runs the dbt project (DCM-managed)
 -- This is how dbt is "maintained inside DCM": DCM owns and versions the task
 -- (what runs, where, with which target); the dbt models themselves live in
--- ../../dbt_project/ and are executed by it.
+-- dcm_project/dbt_project/ and are executed by it.
 --
 -- Requires EXECUTE TASK on the account for the owner role (platform_setup/01).
 --   run now :  execute task {{ raw_compute_db }}.COMPUTE{{ schema_suffix }}.RUN_DBT_BUILD;

@@ -1,7 +1,7 @@
 -- =============================================================================
 -- ENVIRONMENT QA - deploy                                (runs DCM, then dbt)
 -- QA deploys an immutable release commit, never a moving branch.
--- Release 1.0.0 = commit <RELEASE_SHA> on main (both developer PRs merged).
+-- Release 1.0.0 = commit 6ae5037 on main (both developer PRs merged).
 -- ORDER MATTERS: 1. DCM builds containers + security, 2. dbt builds the
 -- transformations inside them and attaches the DCM-defined policies.
 -- =============================================================================
@@ -13,12 +13,12 @@ alter git repository ENT_DCMDBT_CTRL_DB.GIT.ENT_DCMDBT_REPO fetch;
 -- 1a. DCM PLAN: infrastructure / security changes (creates nothing)
 execute dcm project ENT_DCMDBT_CTRL_DB.PROJECTS.DCM_QA
     plan using configuration QA
-    from '@ENT_DCMDBT_CTRL_DB.GIT.ENT_DCMDBT_REPO/commits/<RELEASE_SHA>/NEW_SNOWFLAKE_DCM_DBT_PROJECT/dcm_project';
+    from '@ENT_DCMDBT_CTRL_DB.GIT.ENT_DCMDBT_REPO/commits/6ae5037d3fe51173a6db36f0c9b39c423ff92822/NEW_SNOWFLAKE_DCM_DBT_PROJECT/dcm_project';
 
 -- 1b. DCM DEPLOY (after review). No alias: aliases must be unique per project.
 execute dcm project ENT_DCMDBT_CTRL_DB.PROJECTS.DCM_QA
     deploy using configuration QA
-    from '@ENT_DCMDBT_CTRL_DB.GIT.ENT_DCMDBT_REPO/commits/<RELEASE_SHA>/NEW_SNOWFLAKE_DCM_DBT_PROJECT/dcm_project';
+    from '@ENT_DCMDBT_CTRL_DB.GIT.ENT_DCMDBT_REPO/commits/6ae5037d3fe51173a6db36f0c9b39c423ff92822/NEW_SNOWFLAKE_DCM_DBT_PROJECT/dcm_project';
 
 -- 2a. dbt: a dbt project VERSION is an immutable snapshot of the files.
 --     dbt project objects accept BRANCH paths only (not commits/<sha>), so the
