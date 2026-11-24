@@ -1,0 +1,70 @@
+# =============================================================================
+# CI/CD template - GitHub Actions + Snowflake CLI (snow dcm)
+# Copy to .github/workflows/dcm-pipeline.yml to activate.
+# Repository secrets: SNOWFLAKE_ACCOUNT, SNOWFLAKE_USER, SNOWFLAKE_PASSWORD (PAT)
+# GitHub environments "QA" and "PROD" with required reviewers = approval gates.
+#
+#   pull request -> main      : PLAN against DEV (reviewers see the changeset)
+#   merge to main             : DEPLOY DEV
+#   tag ent-dcm-v*            : PLAN + DEPLOY QA, then (after approval) PROD
+#                               (create the tag in GitHub: Releases > Draft a new release)
+#
+# Azure DevOps: same three stages in azure-pipelines.yml; the commands are identical.
+# =============================================================================
+name: snowflake-dcm
+
+on:
+  pull_request:
+    branches: [main]
+    paths: ["NEW_SNOWFLAKE_DCM_PROJECT/dcm_project/**"]
+  push:
+    branches: [main]
+    paths: ["NEW_SNOWFLAKE_DCM_PROJECT/dcm_project/**"]
+    tags: ["ent-dcm-v*"]
+
+env:
+  PROJECT_DIR: NEW_SNOWFLAKE_DCM_PROJECT/dcm_project
+  SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
+  SNOWFLAKE_USER: ${{ secrets.SNOWFLAKE_USER }}
+  SNOWFLAKE_PASSWORD: ${{ secrets.SNOWFLAKE_PASSWORD }}
+  SNOWFLAKE_ROLE: DCM_DEMO_ADMIN
+  SNOWFLAKE_WAREHOUSE: DCM_DEMO_WH
+
+jobs:
+  plan-dev:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: pip install snowflake-cli
+      - run: snow dcm plan --target DEV --from "$PROJECT_DIR" -x
+
+  deploy-dev:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: pip install snowflake-cli
+      - run: snow sql -q "alter git repository ENT_DCM_CTRL_DB.GIT.ENT_DCM_REPO fetch" -x
+      - run: snow dcm plan   --target DEV --from "$PROJECT_DIR" -x
+      - run: snow dcm deploy --target DEV --from "$PROJECT_DIR" -x --alias "main-${GITHUB_SHA::7}"
+
+  deploy-qa:
+    if: startsWith(github.ref, 'refs/tags/ent-dcm-v')
+    runs-on: ubuntu-latest
+    environment: QA
+    steps:
+      - uses: actions/checkout@v4
+      - run: pip install snowflake-cli
+      - run: snow dcm plan   --target QA --from "$PROJECT_DIR" -x
+      - run: snow dcm deploy --target QA --from "$PROJECT_DIR" -x --alias "$GITHUB_REF_NAME"
+
+  deploy-prod:
+    needs: deploy-qa
+    runs-on: ubuntu-latest
+    environment: PROD          # required reviewers approve here
+    steps:
+      - uses: actions/checkout@v4
+      - run: pip install snowflake-cli
+      - run: snow dcm plan   --target PROD --from "$PROJECT_DIR" -x
+      - run: snow dcm deploy --target PROD --from "$PROJECT_DIR" -x --alias "$GITHUB_REF_NAME"
