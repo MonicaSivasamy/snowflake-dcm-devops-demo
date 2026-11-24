@@ -1,0 +1,91 @@
+# =============================================================================
+# ENTERPRISE DCM PROJECT - manifest
+# -----------------------------------------------------------------------------
+# This file is the ONLY place where environment-specific names live.
+# The SQL files under sources/definitions/ never contain a real database name;
+# they use the Jinja variables below:
+#
+#   {{ raw_compute_db }}  physical name of logical database RAW_COMPUTE_DB
+#   {{ business_db }}     physical name of logical database BUSINESS_DB
+#   {{ schema_suffix }}   ''  for shared environments
+#                         '_DEV_B' for a schema-level developer sandbox
+#   {{ owns_databases }}  true  -> this target creates the databases, database
+#                                  roles and grants
+#                         false -> schema-level sandbox inside databases that
+#                                  another target owns (code objects only)
+#
+# TARGET = one DCM project object in Snowflake + one templating configuration.
+# A Snowflake object can be managed by exactly one DCM project object, so every
+# environment and every developer sandbox has its own project object.
+#
+#   target  isolation       DCM project object                     RAW_COMPUTE_DB         BUSINESS_DB          schemas
+#   DEV     shared          ENT_DCM_CTRL_DB.PROJECTS.ENT_DCM_DEV   DEV_RAW_COMPUTE_DB     DEV_BUSINESS_DB      RAW, COMPUTE, ...
+#   QA      shared          ENT_DCM_CTRL_DB.PROJECTS.ENT_DCM_QA    QA_RAW_COMPUTE_DB      QA_BUSINESS_DB       RAW, COMPUTE, ...
+#   PROD    shared          ENT_DCM_CTRL_DB.PROJECTS.ENT_DCM_PROD  PROD_RAW_COMPUTE_DB    PROD_BUSINESS_DB     RAW, COMPUTE, ...
+#   DEV_A   database-level  ENT_DCM_CTRL_DB.PROJECTS.ENT_DCM_DEV_A DEV_A_RAW_COMPUTE_DB   DEV_A_BUSINESS_DB    RAW, COMPUTE, ...
+#   DEV_B   schema-level    ENT_DCM_CTRL_DB.PROJECTS.ENT_DCM_DEV_B DEV_RAW_COMPUTE_DB     DEV_BUSINESS_DB      RAW_DEV_B, COMPUTE_DEV_B, ...
+#
+# To onboard another developer: copy the DEV_A (or DEV_B) target and
+# configuration below, change the names, and run the matching setup script in
+# developer_isolation/.
+# =============================================================================
+manifest_version: 2
+
+type: DCM_PROJECT
+
+default_target: DEV
+
+targets:
+  DEV:
+    account_identifier: "PYPSAGL-HO49439"
+    project_name: "ENT_DCM_CTRL_DB.PROJECTS.ENT_DCM_DEV"
+    project_owner: "DCM_DEMO_ADMIN"
+    templating_config: DEV
+  QA:
+    account_identifier: "PYPSAGL-HO49439"
+    project_name: "ENT_DCM_CTRL_DB.PROJECTS.ENT_DCM_QA"
+    project_owner: "DCM_DEMO_ADMIN"
+    templating_config: QA
+  PROD:
+    account_identifier: "PYPSAGL-HO49439"
+    project_name: "ENT_DCM_CTRL_DB.PROJECTS.ENT_DCM_PROD"
+    project_owner: "DCM_DEMO_ADMIN"
+    templating_config: PROD
+
+  # ---- developer sandboxes ----------------------------------------------------
+  DEV_A:                       # Developer A: DATABASE-level isolation (own cloned databases)
+    account_identifier: "PYPSAGL-HO49439"
+    project_name: "ENT_DCM_CTRL_DB.PROJECTS.ENT_DCM_DEV_A"
+    project_owner: "DCM_DEMO_ADMIN"
+    templating_config: DEV_A
+  DEV_B:                       # Developer B: SCHEMA-level isolation (own schemas in shared DEV databases)
+    account_identifier: "PYPSAGL-HO49439"
+    project_name: "ENT_DCM_CTRL_DB.PROJECTS.ENT_DCM_DEV_B"
+    project_owner: "DCM_DEMO_ADMIN"
+    templating_config: DEV_B
+
+templating:
+  defaults:
+    schema_suffix: ""
+    owns_databases: true
+    data_retention_days: 1
+
+  configurations:
+    DEV:
+      raw_compute_db: "DEV_RAW_COMPUTE_DB"
+      business_db: "DEV_BUSINESS_DB"
+    QA:
+      raw_compute_db: "QA_RAW_COMPUTE_DB"
+      business_db: "QA_BUSINESS_DB"
+    PROD:
+      raw_compute_db: "PROD_RAW_COMPUTE_DB"
+      business_db: "PROD_BUSINESS_DB"
+      data_retention_days: 7
+    DEV_A:
+      raw_compute_db: "DEV_A_RAW_COMPUTE_DB"
+      business_db: "DEV_A_BUSINESS_DB"
+    DEV_B:
+      raw_compute_db: "DEV_RAW_COMPUTE_DB"
+      business_db: "DEV_BUSINESS_DB"
+      schema_suffix: "_DEV_B"
+      owns_databases: false
