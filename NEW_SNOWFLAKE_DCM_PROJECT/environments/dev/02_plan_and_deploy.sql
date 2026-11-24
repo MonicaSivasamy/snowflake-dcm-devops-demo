@@ -15,8 +15,10 @@ execute dcm project ENT_DCM_CTRL_DB.PROJECTS.ENT_DCM_DEV
     from '@ENT_DCM_CTRL_DB.GIT.ENT_DCM_REPO/branches/main/NEW_SNOWFLAKE_DCM_PROJECT/dcm_project';
 
 -- 3. DEPLOY: apply exactly what the plan showed (after review / approval)
+--    Aliases must be unique per project; DEV deploys often, so no alias here
+--    (DCM names it DEPLOYMENT$<n>). CI uses --alias "main-<commit>".
 execute dcm project ENT_DCM_CTRL_DB.PROJECTS.ENT_DCM_DEV
-    deploy as "main"
+    deploy
     using configuration DEV
     from '@ENT_DCM_CTRL_DB.GIT.ENT_DCM_REPO/branches/main/NEW_SNOWFLAKE_DCM_PROJECT/dcm_project';
 
