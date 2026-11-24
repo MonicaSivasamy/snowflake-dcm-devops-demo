@@ -1,0 +1,28 @@
+# Connection profile for dbt Projects on Snowflake.
+# Inside Snowflake the session's own credentials are used: account / user stay
+# empty and no password is stored. Each target only sets the default database.
+ent_customer:
+  target: dev
+  outputs:
+    dev:   &defaults
+      type: snowflake
+      account: ""
+      user: ""
+      role: DCM_DEMO_ADMIN
+      warehouse: DCM_DEMO_WH
+      database: DCMDBT_DEV_RAW_COMPUTE_DB
+      schema: COMPUTE
+      threads: 4
+    qa:
+      <<: *defaults
+      database: DCMDBT_QA_RAW_COMPUTE_DB
+    prod:
+      <<: *defaults
+      database: DCMDBT_PROD_RAW_COMPUTE_DB
+    dev_a:
+      <<: *defaults
+      database: SBX_DCMDBT_DEV_A_RAW_COMPUTE_DB
+    dev_b:
+      <<: *defaults
+      database: DCMDBT_DEV_RAW_COMPUTE_DB
+      schema: COMPUTE_DEV_B

@@ -1,0 +1,12 @@
+version: 2
+
+models:
+  - name: customer_profile
+    description: customer profile for analysts (row access policy CUSTOMER_COUNTRY_RAP)
+    columns:
+      - name: CUSTOMER_ID
+        data_tests: [not_null, unique]
+      - name: CUSTOMER_SEGMENT
+        data_tests:
+          - accepted_values:
+              values: [LOYAL, ESTABLISHED, NEW, UNKNOWN]

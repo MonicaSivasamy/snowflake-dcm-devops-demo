@@ -1,0 +1,43 @@
+# =============================================================================
+# ENTERPRISE DCM PROJECT WITH dbt - dbt project (transformation logic)
+# Lives INSIDE the DCM project folder (dcm_project/dbt_project/), outside
+# sources/, so DCM never deploys these files itself; a DCM-defined task runs it.
+# Runs natively in Snowflake as a DBT PROJECT object (no external dbt server).
+#
+# ENVIRONMENT MAPPING for dbt (vars.environments below). Must match
+# ../dcm_project/manifest.yml. The dbt target (--target dev|qa|prod|dev_a|dev_b)
+# selects the row; models only name LOGICAL databases (RAW_COMPUTE_DB,
+# BUSINESS_DB) and macros/generate_*_name.sql turn them into physical names.
+# =============================================================================
+name: ent_customer
+version: "1.0.0"
+config-version: 2
+profile: ent_customer
+
+model-paths: ["models"]
+macro-paths: ["macros"]
+test-paths: ["tests"]
+
+vars:
+  environments:
+    dev:   {raw_compute_db: DCMDBT_DEV_RAW_COMPUTE_DB,       business_db: DCMDBT_DEV_BUSINESS_DB,       schema_suffix: "",       owns_databases: true}
+    qa:    {raw_compute_db: DCMDBT_QA_RAW_COMPUTE_DB,        business_db: DCMDBT_QA_BUSINESS_DB,        schema_suffix: "",       owns_databases: true}
+    prod:  {raw_compute_db: DCMDBT_PROD_RAW_COMPUTE_DB,      business_db: DCMDBT_PROD_BUSINESS_DB,      schema_suffix: "",       owns_databases: true}
+    dev_a: {raw_compute_db: SBX_DCMDBT_DEV_A_RAW_COMPUTE_DB, business_db: SBX_DCMDBT_DEV_A_BUSINESS_DB, schema_suffix: "",       owns_databases: true}
+    dev_b: {raw_compute_db: DCMDBT_DEV_RAW_COMPUTE_DB,       business_db: DCMDBT_DEV_BUSINESS_DB,       schema_suffix: "_DEV_B", owns_databases: false}
+
+models:
+  ent_customer:
+    raw_compute:
+      compute:                                 # -> <raw_compute_db>.COMPUTE<suffix>
+        +database: RAW_COMPUTE_DB              # LOGICAL name, mapped by macros/generate_database_name.sql
+        +schema: COMPUTE
+    business:
+      business_ready:                          # -> <business_db>.BUSINESS_READY<suffix>
+        +database: BUSINESS_DB                 # LOGICAL name
+        +schema: BUSINESS_READY
+        +materialized: view
+        # governance: policy FIRST, grant SECOND (macros/governance/)
+        +post-hook:
+          - "{{ attach_row_access_policy('CUSTOMER_COUNTRY_RAP', 'COUNTRY') }}"
+          - "{{ grant_select_to_database_role('BUSINESS_READER') }}"
