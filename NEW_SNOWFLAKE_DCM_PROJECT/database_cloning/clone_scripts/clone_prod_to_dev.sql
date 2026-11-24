@@ -1,6 +1,6 @@
 -- =============================================================================
 -- CLONE PROD -> DEV (both databases)                           (NOT DCM-managed)
--- Shared DEV only. Developer sandboxes (DEV_A_*, *_DEV_B schemas) are NOT
+-- Shared DEV only. Developer sandboxes (SBX_DEV_A_*, *_DEV_B schemas) are NOT
 -- touched: they are separate databases / schemas with their own DCM project.
 -- Masking policies travel with the clone, but check your data policy before
 -- copying production PII into DEV.

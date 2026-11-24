@@ -3,7 +3,7 @@
 -- ENT_DCM_CTRL_DB.OPS.SP_REFRESH_DATABASE(source_env, target_env, scope, take_backup)
 --
 --   source_env   PROD | QA | DEV
---   target_env   QA | DEV | DEV_A ...     (PROD is always refused)
+--   target_env   QA | DEV | SBX_DEV_A ... (PROD is always refused)
 --   scope        'ALL' | 'RAW_COMPUTE_DB' | 'BUSINESS_DB'
 --   take_backup  TRUE -> zero-copy backup <target>_BKP_<timestamp> first
 --

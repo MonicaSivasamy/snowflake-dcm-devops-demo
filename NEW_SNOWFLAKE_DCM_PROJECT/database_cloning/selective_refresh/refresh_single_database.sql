@@ -13,5 +13,5 @@ call ENT_DCM_CTRL_DB.OPS.SP_REFRESH_DATABASE('PROD', 'QA', 'RAW_COMPUTE_DB', tru
 --       them to QA_RAW_COMPUTE_DB -> always run post_refresh/after_refresh.sql
 
 -- c) refresh a developer's databases from shared DEV (developer asked for it)
--- call ENT_DCM_CTRL_DB.OPS.SP_REFRESH_DATABASE('DEV', 'DEV_A', 'ALL', true);
---    then redeploy the developer's FEATURE BRANCH (not main) to DEV_A.
+-- call ENT_DCM_CTRL_DB.OPS.SP_REFRESH_DATABASE('DEV', 'SBX_DEV_A', 'ALL', true);
+--    then redeploy the developer's FEATURE BRANCH (not main) with target DEV_A.
