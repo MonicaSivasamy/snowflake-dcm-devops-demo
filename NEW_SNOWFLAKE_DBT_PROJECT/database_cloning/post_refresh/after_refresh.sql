@@ -20,11 +20,11 @@ alter git repository ENT_DBT_CTRL_DB.GIT.ENT_DBT_REPO fetch;
 -- 1. DCM PLAN shows the drift the clone introduced; DEPLOY the release QA was on
 execute dcm project ENT_DBT_CTRL_DB.PROJECTS.DCM_QA
     plan using configuration QA
-    from '@ENT_DBT_CTRL_DB.GIT.ENT_DBT_REPO/commits/<RELEASE_SHA>/NEW_SNOWFLAKE_DBT_PROJECT/dcm_project';
+    from '@ENT_DBT_CTRL_DB.GIT.ENT_DBT_REPO/commits/1630b7335616069c652e38f1c7cd7eb9632fe024/NEW_SNOWFLAKE_DBT_PROJECT/dcm_project';
 execute dcm project ENT_DBT_CTRL_DB.PROJECTS.DCM_QA
     deploy as "release-after-refresh"          -- aliases are unique: change per run
     using configuration QA
-    from '@ENT_DBT_CTRL_DB.GIT.ENT_DBT_REPO/commits/<RELEASE_SHA>/NEW_SNOWFLAKE_DBT_PROJECT/dcm_project';
+    from '@ENT_DBT_CTRL_DB.GIT.ENT_DBT_REPO/commits/1630b7335616069c652e38f1c7cd7eb9632fe024/NEW_SNOWFLAKE_DBT_PROJECT/dcm_project';
 
 -- 2. dbt rebuilds the views against QA and re-attaches the policies
 --    (the dbt project object DBT_QA already holds the release version)
