@@ -10,6 +10,7 @@ use warehouse DCM_DEMO_WH;
 set ENV = 'DEV';                                   -- DEV | QA | PROD | DEV_A
 
 set RAW_TABLE = $ENV || '_RAW_COMPUTE_DB.RAW.CUSTOMER_SRC';
+set CMP_TABLE = $ENV || '_RAW_COMPUTE_DB.COMPUTE.CUSTOMER';
 set CALL_LOAD = 'call ' || $ENV || '_RAW_COMPUTE_DB.COMPUTE.SP_LOAD_CUSTOMER()';
 
 truncate table identifier($RAW_TABLE);
@@ -29,4 +30,4 @@ execute immediate $CALL_LOAD;
 
 select 'RAW' as LAYER, count(*) as ROWS_ from identifier($RAW_TABLE)
 union all
-select 'COMPUTE', count(*) from identifier($ENV || '_RAW_COMPUTE_DB.COMPUTE.CUSTOMER');
+select 'COMPUTE', count(*) from identifier($CMP_TABLE);
