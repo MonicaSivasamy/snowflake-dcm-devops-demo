@@ -19,8 +19,8 @@ create or replace procedure ENT_DCM_CTRL_DB.OPS.SP_REFRESH_DATABASE(
     SOURCE_ENV varchar, TARGET_ENV varchar, SCOPE varchar, TAKE_BACKUP boolean)
 returns varchar
 language sql
-execute as caller
 comment = 'Clone <SOURCE_ENV>_<DB> over <TARGET_ENV>_<DB>. Never targets PROD. Data only - redeploy with DCM afterwards.'
+execute as caller
 as
 $$
 declare
