@@ -1,7 +1,8 @@
 -- =============================================================================
 -- Logical database: RAW_COMPUTE_DB   (physical name: {{ raw_compute_db }})
 -- Holds the RAW layer (data as received) and the COMPUTE layer (cleansing).
--- DCM creates the containers; dbt builds the COMPUTE objects inside them.
+-- DCM creates the containers and the RAW landing table; dbt builds every
+-- view and table on top of it (RAW.V_CUSTOMER_SRC_LATEST, all of COMPUTE).
 -- GOVERNANCE holds the masking policies that protect this database.
 -- =============================================================================
 {% if owns_databases %}

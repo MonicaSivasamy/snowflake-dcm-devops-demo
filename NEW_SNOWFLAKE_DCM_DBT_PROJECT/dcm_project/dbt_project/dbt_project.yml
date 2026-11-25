@@ -29,6 +29,12 @@ vars:
 models:
   ent_customer:
     raw_compute:
+      raw:                                     # -> <raw_compute_db>.RAW<suffix>
+        +database: RAW_COMPUTE_DB
+        +schema: RAW
+        +materialized: view
+        +post-hook:
+          - "{{ grant_select_to_database_role('RAW_READER') }}"
       compute:                                 # -> <raw_compute_db>.COMPUTE<suffix>
         +database: RAW_COMPUTE_DB              # LOGICAL name, mapped by macros/generate_database_name.sql
         +schema: COMPUTE

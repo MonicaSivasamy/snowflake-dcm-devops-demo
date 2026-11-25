@@ -15,5 +15,5 @@ select CUSTOMER_ID,
             else upper(trim(COUNTRY))
         end)::varchar(50)                                  as COUNTRY,
        try_to_date(SIGNUP_DATE)                            as SIGNUP_DATE
-from {{ source('raw', 'v_customer_src_latest') }}
+from {{ ref('v_customer_src_latest') }}
 where CUSTOMER_ID is not null
