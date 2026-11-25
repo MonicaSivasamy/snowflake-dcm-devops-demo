@@ -1,14 +1,15 @@
 version: 2
 
-# RAW layer: structure owned by DCM (dcm_project/.../raw/), data by ingestion.
+# RAW landing table: created by DCM (sources/definitions/.../raw/tables/),
+# filled by ingestion. dbt only READS it.
 sources:
   - name: raw
     database: "{{ var('environments')[target.name]['raw_compute_db'] }}"
     schema: "RAW{{ var('environments')[target.name]['schema_suffix'] }}"
     tables:
-      - name: v_customer_src_latest
-        identifier: V_CUSTOMER_SRC_LATEST
-        description: latest delivered record per customer
+      - name: customer_src
+        identifier: CUSTOMER_SRC
+        description: customer records as delivered by the CRM (may contain resends)
         columns:
           - name: CUSTOMER_ID
-            data_tests: [not_null, unique]
+            data_tests: [not_null]
