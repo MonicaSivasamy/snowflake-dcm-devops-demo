@@ -6,10 +6,10 @@
 #
 #   dcm_project/
 #   ├── manifest.yml            <- this file (environments + names)
-#   ├── sources/definitions/    <- DEPLOYED by DCM: databases, schemas, RAW,
-#   │                              COMPUTE.CUSTOMER structure, security, and the
-#   │                              TASK that runs dbt (orchestration/)
-#   └── dbt_project/            <- dbt models; ignored by DCM PLAN/DEPLOY
+#   ├── sources/definitions/    <- DEPLOYED by DCM: only what dbt cannot create -
+#   │                              databases, schemas, RAW landing table, roles,
+#   │                              grants, policy definitions, the dbt TASK
+#   └── dbt_project/            <- every view + table (dbt models); ignored by DCM PLAN/DEPLOY
 #                                  (outside sources/), run by the DCM task
 #
 #   target  isolation       DCM project / dbt project            RAW_COMPUTE_DB                    BUSINESS_DB
