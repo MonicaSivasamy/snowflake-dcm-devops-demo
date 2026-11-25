@@ -5,7 +5,8 @@
 -- The role name is UNQUALIFIED on purpose: inside a policy Snowflake resolves
 -- it in the policy's own database, so the policy body is identical in every
 -- environment and stays correct after a clone.
--- Where they are applied: pii_masking_assignments.sql
+-- Where they are applied: by dbt (post-hooks on models/raw_compute/compute/customer.sql)
+-- because dbt builds the table. Definitions stay here, versioned and planned by DCM.
 -- =============================================================================
 
 define masking policy {{ raw_compute_db }}.GOVERNANCE{{ schema_suffix }}.MASK_EMAIL

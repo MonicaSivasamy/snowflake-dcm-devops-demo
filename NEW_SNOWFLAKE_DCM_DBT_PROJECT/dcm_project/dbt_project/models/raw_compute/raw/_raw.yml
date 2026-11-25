@@ -1,0 +1,8 @@
+version: 2
+
+models:
+  - name: v_customer_src_latest
+    description: latest delivered record per customer
+    columns:
+      - name: CUSTOMER_ID
+        data_tests: [not_null, unique]

@@ -7,7 +7,7 @@ models:
       - name: CUSTOMER_ID
         data_tests: [not_null, unique]
   - name: customer
-    description: cleansed customers (table structure and masking owned by DCM)
+    description: cleansed customers (table built by dbt; masking policies defined by DCM, attached by post-hook)
     columns:
       - name: CUSTOMER_ID
         data_tests: [not_null, unique]
