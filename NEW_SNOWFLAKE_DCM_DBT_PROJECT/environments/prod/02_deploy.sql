@@ -1,7 +1,7 @@
 -- =============================================================================
 -- ENVIRONMENT PROD - deploy                                (runs DCM, then dbt)
 -- PROD deploys exactly the release commit that passed QA.
--- Release 1.0.0 = commit 6ae5037 on main (both developer PRs merged).
+-- Release 1.1.0 = commit 8e9ddd0 on main (developer changes + all transformations in dbt).
 -- ORDER MATTERS: 1. DCM builds containers + security, 2. dbt builds the
 -- transformations inside them and attaches the DCM-defined policies.
 -- =============================================================================
@@ -13,12 +13,12 @@ alter git repository ENT_DCMDBT_CTRL_DB.GIT.ENT_DCMDBT_REPO fetch;
 -- 1a. DCM PLAN: infrastructure / security changes (creates nothing)
 execute dcm project ENT_DCMDBT_CTRL_DB.PROJECTS.DCM_PROD
     plan using configuration PROD
-    from '@ENT_DCMDBT_CTRL_DB.GIT.ENT_DCMDBT_REPO/commits/6ae5037d3fe51173a6db36f0c9b39c423ff92822/NEW_SNOWFLAKE_DCM_DBT_PROJECT/dcm_project';
+    from '@ENT_DCMDBT_CTRL_DB.GIT.ENT_DCMDBT_REPO/commits/8e9ddd0d4a1b1ed83fef75ddfaa3c8f5a16d5545/NEW_SNOWFLAKE_DCM_DBT_PROJECT/dcm_project';
 
 -- 1b. DCM DEPLOY (after review). No alias: aliases must be unique per project.
 execute dcm project ENT_DCMDBT_CTRL_DB.PROJECTS.DCM_PROD
     deploy using configuration PROD
-    from '@ENT_DCMDBT_CTRL_DB.GIT.ENT_DCMDBT_REPO/commits/6ae5037d3fe51173a6db36f0c9b39c423ff92822/NEW_SNOWFLAKE_DCM_DBT_PROJECT/dcm_project';
+    from '@ENT_DCMDBT_CTRL_DB.GIT.ENT_DCMDBT_REPO/commits/8e9ddd0d4a1b1ed83fef75ddfaa3c8f5a16d5545/NEW_SNOWFLAKE_DCM_DBT_PROJECT/dcm_project';
 
 -- 2a. dbt: PROD runs EXACTLY the dbt version that passed QA - it is copied
 --     from the QA project object, not re-read from Git.
