@@ -122,7 +122,7 @@ Scripts: `environments/<env>/01_create_projects.sql`, `02_deploy.sql`.
 | Env | DCM reads | dbt project object |
 |---|---|---|
 | DEV  | `branches/main` | `DBT_DEV` from `branches/main` (new version after each merge) |
-| QA   | `commits/6ae5037…` (release) | `DBT_QA` from `branches/main` while main = release. dbt objects accept branch paths only |
+| QA   | `commits/8e9ddd0…` (release 1.1.0) | `DBT_QA` from `branches/main` while main = release. dbt objects accept branch paths only |
 | PROD | same commit | `DBT_PROD` = **copy of QA's dbt version** (`snow://dbt/…DBT_QA/versions/live/`) |
 
 **One admin grant is still needed.** Running the task needs
@@ -173,7 +173,8 @@ policy while a dbt view still uses it. The `99_drop_*` scripts follow this order
 | [#16](https://github.com/MonicaSivasamy/snowflake-dcm-devops-demo/pull/16) | Developer A, country codes |
 | [#17](https://github.com/MonicaSivasamy/snowflake-dcm-devops-demo/pull/17) | Developer B, customer segment |
 | [#18](https://github.com/MonicaSivasamy/snowflake-dcm-devops-demo/pull/18) | README, release SHA in the QA/PROD scripts |
-| this PR | move every transformable object to dbt (RAW view, CUSTOMER table + masking) |
+| [#20](https://github.com/MonicaSivasamy/snowflake-dcm-devops-demo/pull/20) | move every transformable object to dbt (RAW view, CUSTOMER table + masking). DCM PLAN per environment: `DROP` of the 2 handed-over objects, then `dbt build` PASS=14. Released as 1.1.0 (`8e9ddd0`) to DEV, QA, PROD and the DEV_A sandbox |
+| this PR | scripts point at release 1.1.0 |
 
 Snowflake (`ENT_DCMDBT_CTRL_DB.PROJECTS`): `DCM_DEV/QA/PROD/DEV_A/DEV_B` and
 `DBT_DEV/QA/PROD/DEV_A/DEV_B`. `dbt build` passes in DEV, QA and PROD.
